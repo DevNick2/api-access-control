@@ -1,0 +1,15 @@
+FROM node:20-alpine
+WORKDIR /api
+COPY package*.json ./
+COPY yarn.lock ./
+RUN yarn install
+RUN apk add --no-cache \
+  poppler-utils \
+  poppler-data \
+  udev \
+  ttf-freefont \
+  chromium
+
+ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser
+COPY . .
+CMD [ "yarn", "start:dev" ]

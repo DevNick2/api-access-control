@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+
+# Obtém o nome da branch atual
+branch_name=$(git rev-parse --abbrev-ref HEAD)
+
+# Evita execução em branches específicas, como 'main' ou 'master'
+if [ "$branch_name" = "main" ] || [ "$branch_name" = "development" ] || [ "$branch_name" = "release/" ]; then
+  exit 0
+fi
+
+if echo "$branch_name" | grep -qE '^hotfix/[a-zA-Z]+$'; then
+  exit 0
+fi
+
+# Regex para extrair o número da branch (e.g., #347)
+ticket_number=$(echo "$branch_name" | grep -oP '(?<=#)\d+')
+
+# Se o número do ticket for encontrado, atualiza a mensagem do commit
+if [ ! -z "$branch_name" ] && [ -n "$ticket_number" ]; then
+  # Caminho para o arquivo com a mensagem do commit
+  commit_message_file=".git/COMMIT_EDITMSG"
+
+  # Prefixa a mensagem do commit com o número do ticket
+  if ! grep -q "#$ticket_number" "$commit_message_file"; then
+    sed -i "1s/^/[AB#$ticket_number] /" "$commit_message_file"
+  fi
+fi

@@ -1,0 +1,149 @@
+import { ApiProperty } from '@nestjs/swagger';
+import {
+  IsBoolean,
+  IsDate,
+  IsEmail,
+  IsEnum,
+  IsNumber,
+  IsString,
+  IsUUID,
+} from 'class-validator';
+import { UserType } from 'src/entities/user.entity';
+
+export class LoginDTO {
+  @ApiProperty({
+    required: true,
+  })
+  @IsEmail()
+  email: string;
+
+  @ApiProperty({
+    required: true,
+  })
+  @IsString()
+  password: string;
+}
+export class UserShowDTO {
+  @ApiProperty({
+    required: true,
+  })
+  @IsUUID('4')
+  code: string;
+}
+
+export class UserShowByEmailDTO {
+  @ApiProperty({
+    required: true,
+  })
+  @IsEmail()
+  email: string;
+}
+export class UserStoreDTO {
+  @ApiProperty({
+    required: true,
+  })
+  @IsString()
+  name: string;
+
+  @ApiProperty({
+    required: true,
+  })
+  @IsEmail()
+  email: string;
+
+  @ApiProperty({
+    required: true,
+  })
+  @IsEnum({
+    enum: UserType,
+  })
+  type: Exclude<UserType, 'admin'>;
+
+  @ApiProperty({
+    required: true,
+  })
+  @IsString()
+  password: string;
+
+  @ApiProperty({
+    required: false,
+  })
+  @IsString()
+  document?: string;
+
+  @ApiProperty({
+    required: false,
+  })
+  @IsString()
+  phone?: string;
+}
+export class UserUpdateDTO {
+  @ApiProperty({
+    required: false,
+  })
+  @IsEmail()
+  email?: string;
+
+  @ApiProperty({
+    required: false,
+  })
+  @IsString()
+  password?: string;
+
+  @ApiProperty({
+    required: false,
+  })
+  @IsString()
+  name?: string;
+
+  @ApiProperty({
+    required: false,
+  })
+  @IsString()
+  document?: string;
+
+  @ApiProperty({
+    required: false,
+  })
+  @IsString()
+  phone?: string;
+
+  @IsString()
+  refresh_token?: string;
+
+  @IsNumber()
+  otp?: number;
+
+  @IsDate()
+  otp_expires?: Date;
+
+  @IsBoolean()
+  verified?: boolean;
+}
+export class PasswordResetDTO {
+  @ApiProperty({
+    required: true,
+  })
+  @IsString()
+  new_password: string;
+
+  @ApiProperty({
+    required: true,
+  })
+  @IsString()
+  confirm_password: string;
+
+  @ApiProperty({
+    required: true,
+  })
+  @IsNumber()
+  otp: number;
+}
+export class PasswordOtpDTO extends UserShowByEmailDTO {}
+export class VerifyOtpDTO {
+  @IsNumber()
+  @ApiProperty({
+    required: false,
+  })
+  otp: number;
+}

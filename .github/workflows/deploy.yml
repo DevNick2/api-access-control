@@ -1,0 +1,42 @@
+name: Deploy
+
+on: workflow_dispatch
+
+jobs:
+  # ci:
+  #   runs-on: ubuntu-latest
+  #   strategy:
+  #     matrix:
+  #       node-version: [20.x]
+
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     - name: Use Node.js ${{ matrix.node-version }}
+  #       uses: actions/setup-node@v4
+  #       with:
+  #         node-version: ${{ matrix.node-version }}
+  #         cache: 'yarn'
+  #     - run: yarn install --frozen-lockfile
+  #     - run: yarn test:ci
+  # build:
+  #   runs-on: [ubuntu-latest]
+
+  #   steps:
+  #     - name: Checkout repository
+  #       uses: actions/checkout@v2
+
+  #     - name: Create SSH key
+  #       run: |
+  #         mkdir -p ~/.ssh/
+  #         echo "${{ secrets.SECRET_KEY }}" > ~/.ssh/private.key
+  #         chmod 600 ~/.ssh/private.key
+
+  #     - name: Deploy Docker image to EC2
+  #       run: |
+  #         ssh -i ~/.ssh/private.key -o StrictHostKeyChecking=no ${{ secrets.EC2_USER }}@${{ secrets.EC2_INSTANCE }} << 'EOF'
+  #         git -C ~/ fetch --tags
+  #         git -C ~/ checkout tags/${{ github.ref_name }}
+  #         git -C ~/ pull origin ${{ github.ref_name }}
+  #         git -C ~/ checkout -b release/${{ github.ref_name }}
+  #         docker system prune -af && docker compose -f ~/b-sandk/devops/docker-compose.yml up --no-deps --build b-cs -d
+  #         EOF
