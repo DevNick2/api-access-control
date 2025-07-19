@@ -32,7 +32,7 @@ export class SessionService {
         refresh_token: refreshToken,
       });
 
-      return { token, refresh_token: refreshToken };
+      return { access_token: token, refresh_token: refreshToken };
     } catch (e) {
       throw e;
     }

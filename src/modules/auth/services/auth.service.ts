@@ -1,7 +1,6 @@
 import { BadRequestException, Inject, Injectable } from '@nestjs/common';
 // import { JwtProviderService } from 'src/shared/services/jwt-provider.service';
 import { UserService } from './user.service';
-import { Users } from 'src/entities/user.entity';
 import {
   LoginDTO,
   PasswordOtpDTO,
@@ -10,6 +9,7 @@ import {
 } from '../dto/user.dto';
 import { ErrorsHelpers } from 'src/shared/helpers/errors.helper';
 import { HashHelpers } from 'src/shared/helpers/hash.helper';
+import { User } from 'src/entities/user.entity';
 
 @Injectable()
 export class AuthService {
@@ -22,13 +22,9 @@ export class AuthService {
     // private credentialsService: CredentialsService,
   ) {}
 
-  async authenticate({ email, password }: LoginDTO): Promise<Users> {
+  async authenticate({ email, password }: LoginDTO): Promise<User> {
     try {
       const user = await this.usersService.showByEmail(email);
-
-      if (!user.verified) {
-        throw new BadRequestException(ErrorsHelpers.USER_NOT_VERIFIED);
-      }
 
       if (!(await this.hashHelper.compareHash(password, user.password))) {
         throw new BadRequestException(ErrorsHelpers.PASSWORD_INCORRECT);

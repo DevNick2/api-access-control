@@ -10,12 +10,13 @@ import * as dataSource from '../../../../db/data-source';
 import { UserService } from 'src/modules/auth/services/user.service';
 import { HashHelpers } from 'src/shared/helpers/hash.helper';
 import { getRepositoryToken, TypeOrmModule } from '@nestjs/typeorm';
-import { Users } from 'src/entities/user.entity';
+import { User } from 'src/entities/user.entity';
 import { TypeormService } from 'src/shared/services/typeorm.service';
 import { SessionService } from 'src/modules/auth/services/session.service';
 import { JwtProviderService } from 'src/shared/services/jwt-provider.service';
 import { AuthGuard } from 'src/shared/guard/auth.guard';
 import { APP_GUARD, Reflector } from '@nestjs/core';
+import { Role } from 'src/entities/role.entity';
 
 export const repository: () => MockType<Repository<any>> = jest.fn(() => ({
   save: jest.fn(),
@@ -34,29 +35,6 @@ export const repository: () => MockType<Repository<any>> = jest.fn(() => ({
   getAllAndOverride: jest.fn(),
 }));
 
-export async function TestingCustomerModule({
-  withMockedDatabase,
-}: {
-  withMockedDatabase?: boolean;
-}): Promise<TestingModule> {
-  return await Test.createTestingModule({
-    imports: [
-      TypeormService,
-      ...(!withMockedDatabase
-        ? [
-            TypeOrmModule.forFeature([
-              Users,
-            ]),
-          ]
-        : []),
-      ConfigModule.forRoot({
-        envFilePath: `.env.test`,
-      }),
-    ],
-    providers: [...(withMockedDatabase ? [] : [])],
-  }).compile();
-}
-
 export async function TestingAuthModule({
   withMockedDatabase,
 }: {
@@ -65,7 +43,7 @@ export async function TestingAuthModule({
   return await Test.createTestingModule({
     imports: [
       TypeormService,
-      ...(!withMockedDatabase ? [TypeOrmModule.forFeature([Users])] : []),
+      ...(!withMockedDatabase ? [TypeOrmModule.forFeature([User, Role])] : []),
       ConfigModule.forRoot({
         envFilePath: `.env.test`,
       }),
@@ -87,7 +65,11 @@ export async function TestingAuthModule({
       ...(withMockedDatabase
         ? [
             {
-              provide: getRepositoryToken(Users),
+              provide: getRepositoryToken(User),
+              useFactory: repository,
+            },
+            {
+              provide: getRepositoryToken(Role),
               useFactory: repository,
             },
           ]

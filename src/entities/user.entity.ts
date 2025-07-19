@@ -1,14 +1,15 @@
-import { Entity, Column } from 'typeorm';
+import { Entity, Column, ManyToMany, JoinColumn, ManyToOne, OneToMany, OneToOne } from 'typeorm';
 import CustomBaseEntity from './base.entity';
+import { Role } from './role.entity';
 
-export enum UserType {
-  DIVER = 'diver',
-  INSPECTOR = 'inspector',
+export enum UserProfile {
   ADMIN = 'admin',
+  MANAGER = 'manager',
+  USER = 'user'
 }
 
 @Entity()
-export class Users extends CustomBaseEntity {
+export class User extends CustomBaseEntity {
   @Column({ type: 'varchar', nullable: false })
   name: string;
 
@@ -20,56 +21,28 @@ export class Users extends CustomBaseEntity {
 
   @Column({
     type: 'enum',
-    enum: UserType,
+    enum: UserProfile,
     nullable: false,
   })
-  type: UserType;
+  profile: UserProfile;
 
-  @Column({
-    type: 'bool',
-    default: false,
-  })
-  verified: boolean;
+  @Column({ type: "boolean", nullable: false })
+  is_temporary_password: boolean
 
-  @Column({ type: 'varchar', nullable: true })
-  avatar?: string;
+  @OneToOne(() => Role, { nullable: true, cascade: false })
+  @JoinColumn({ name: 'role_id', referencedColumnName: 'id' })
+  roles?: Role
 
-  @Column({
-    type: 'varchar',
-    nullable: true,
-    transformer: {
-      to(value?: string): string {
-        return value ? value.replaceAll(/\W/g, '').trim() : null;
-      },
-      from(value: string): string {
-        return value;
-      },
-    },
-  })
-  document?: string;
+  // @ManyToOne(() => Company, (company) => company.user, { cascade: false, nullabel: true })
+  // @JoinColumn({ name: 'company_id', referencedColumnName: 'id' })
+  // company: Company
 
-  @Column({
-    type: 'bigint',
-    nullable: true,
-    transformer: {
-      to(value?: string): number {
-        return value
-          ? parseInt(value.toString().replaceAll(/\W/g, '').trim())
-          : null;
-      },
-      from(value: number): number {
-        return value;
-      },
-    },
-  })
-  phone?: string;
+  @Column({ type: 'timestamptz', nullable: true })
+  last_login_at?: Date
 
-  @Column({ nullable: true })
-  refresh_token?: string;
-
-  @Column({ nullable: true, type: 'int' })
-  otp?: number;
-
-  @Column({ nullable: true, type: 'timestamptz' })
-  otp_expires?: Date;
+  @Column({ type: 'int', nullable: true })
+  otp_code?: number
+  
+  @Column({ type: 'timestamptz', nullable: true })
+  otp_code_expires_at?: Date
 }

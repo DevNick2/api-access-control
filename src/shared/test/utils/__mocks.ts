@@ -1,15 +1,14 @@
 import { faker } from '@faker-js/faker/.';
-import { Users, UserType } from 'src/entities/user.entity';
+import { User, UserProfile } from 'src/entities/user.entity';
 
-export function generateRandomUser(): Users {
+export function generateRandomUser(): User {
   return {
     id: faker.number.int(),
+    code: faker.string.uuid(),
     name: faker.person.fullName(),
     email: faker.internet.email(),
     password: faker.internet.password(),
-    type: UserType.DIVER,
-    verified: true,
-    code: faker.string.uuid(),
+    profile: UserProfile.USER,
     created_at: undefined,
     updated_at: undefined,
     hasId: jest.fn(),
@@ -18,5 +17,7 @@ export function generateRandomUser(): Users {
     softRemove: jest.fn(),
     recover: jest.fn(),
     reload: jest.fn(),
+    is_temporary_password: false,
+    last_login_at: undefined,
   };
 }

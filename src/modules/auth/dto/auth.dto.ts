@@ -1,4 +1,4 @@
 export class AuthDTO {
-  token: string;
+  access_token: string;
   refresh_token: string;
 }

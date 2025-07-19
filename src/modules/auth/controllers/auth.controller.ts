@@ -16,8 +16,6 @@ import { AuthService } from '../services/auth.service';
 import { SessionService } from '../services/session.service';
 import {
   LoginDTO,
-  PasswordOtpDTO,
-  PasswordResetDTO,
   UserStoreDTO,
   VerifyOtpDTO,
 } from '../dto/user.dto';
@@ -66,37 +64,9 @@ export class AuthController {
     return await this.authService.validateOtpToNewUser(payload);
   }
 
-  // @Public()
-  // @HttpCode(HttpStatus.CREATED)
-  // @Post('refresh-token')
-  // async refreshtoken(@Body() payload) {
-  //   return '';
-  // }
-
   @HttpCode(HttpStatus.OK)
   @Get('me')
   async me(@Request() req): Promise<UserResources> {
     return new UserResources(req.user);
-  }
-
-  @Public()
-  @HttpCode(HttpStatus.OK)
-  @Post('generate-otp')
-  async generateOtp(@Body() payload: PasswordOtpDTO) {
-    return await this.authService.otp(payload);
-  }
-
-  @Public()
-  @HttpCode(HttpStatus.OK)
-  @Post('check-otp')
-  async checkOtp(@Body() payload: VerifyOtpDTO) {
-    return await this.authService.checkOtpToResetPassword(payload);
-  }
-
-  @Public()
-  @HttpCode(HttpStatus.OK)
-  @Post('recovery')
-  async resetPassword(@Body() payload: PasswordResetDTO) {
-    return await this.authService.resetPassword(payload);
   }
 }

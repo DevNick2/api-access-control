@@ -1,5 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 import {
+  ArrayNotEmpty,
+  IsArray,
   IsBoolean,
   IsDate,
   IsEmail,
@@ -7,8 +9,10 @@ import {
   IsNumber,
   IsString,
   IsUUID,
+  ValidateIf,
 } from 'class-validator';
-import { UserType } from 'src/entities/user.entity';
+import { RolesList } from 'src/entities/role.entity';
+import { UserProfile } from 'src/entities/user.entity';
 
 export class LoginDTO {
   @ApiProperty({
@@ -54,10 +58,10 @@ export class UserStoreDTO {
   @ApiProperty({
     required: true,
   })
-  @IsEnum({
-    enum: UserType,
+  @IsEnum(UserProfile, {
+    each: true
   })
-  type: Exclude<UserType, 'admin'>;
+  profile: Exclude<UserProfile, 'admin'>;
 
   @ApiProperty({
     required: true,
@@ -68,14 +72,14 @@ export class UserStoreDTO {
   @ApiProperty({
     required: false,
   })
-  @IsString()
-  document?: string;
 
-  @ApiProperty({
-    required: false,
+  @ValidateIf(o => o.profile === UserProfile.USER)
+  @IsArray()
+  @ArrayNotEmpty()
+  @IsEnum(RolesList, {
+    each: true
   })
-  @IsString()
-  phone?: string;
+  roles?: RolesList[]
 }
 export class UserUpdateDTO {
   @ApiProperty({

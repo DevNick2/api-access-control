@@ -4,7 +4,7 @@ import {
 } from 'src/shared/test/utils/setup.util';
 import { faker } from '@faker-js/faker';
 import { DataSource } from 'typeorm';
-import { Users, UserType } from 'src/entities/user.entity';
+import { User, UserProfile } from 'src/entities/user.entity';
 import { plainToInstance } from 'class-transformer';
 import { ValidationError, validate } from 'class-validator';
 import { NotFoundException } from '@nestjs/common';
@@ -12,66 +12,62 @@ import { ErrorsHelpers } from 'src/shared/helpers/errors.helper';
 import { UserStoreDTO } from '../dto/user.dto';
 import { UserService } from '../services/user.service';
 
-describe('UserService', () => {
+describe('User Management', () => {
   let userService: UserService;
-  const database: DataSource = TestingDatabaseInitialize();
 
   beforeEach(async () => {
     const testingModule = await TestingAuthModule({});
+
     userService = testingModule.get<UserService>(UserService);
   });
 
-  it('should return created user on signUp', async () => {
-    const inputedUser: UserStoreDTO = {
+  it('should create a MANAGER with temporary password', async () => {
+    // given: a request to create a manager
+    const user: UserStoreDTO = {
       name: faker.person.fullName(),
       email: faker.internet.email(),
       password: faker.internet.password(),
-      type: UserType.DIVER,
+      profile: UserProfile.MANAGER,
     };
 
-    const newUser = await userService.store(inputedUser);
+    // when: manager is created with temporary password
+    const createdUser = await userService.store(user)
 
-    const createdUser = await database.manager.findOne(Users, {
-      where: {
-        code: newUser.code,
-      },
-    });
-
-    expect(createdUser.email).toBe(inputedUser.email);
+    // then: property is_temporary_password is true
+    expect(createdUser.is_temporary_password).toBe(true)
   });
-
-  it('should return error when try create user with type admin', async () => {
-    const dtoInstance = plainToInstance(UserStoreDTO, {
+  
+  it('should create a USER with temporary password', async () => {
+    // given: a request to create a user
+    const user: UserStoreDTO = {
       name: faker.person.fullName(),
       email: faker.internet.email(),
       password: faker.internet.password(),
-      type: UserType.ADMIN,
-    });
-    const [validationError]: ValidationError[] = await validate(dtoInstance);
-
-    expect(validationError).toBeInstanceOf(ValidationError);
-    expect(validationError).toHaveProperty('property', 'type');
-  });
-
-  it('should return user with show', async () => {
-    const inputedUser: UserStoreDTO = {
-      name: faker.person.fullName(),
-      email: faker.internet.email(),
-      password: faker.internet.password(),
-      type: UserType.DIVER,
+      profile: UserProfile.USER,
     };
 
-    const createdUser = await database.manager.save(Users, inputedUser);
+    // when: manager is created with temporary password
+    const createdUser = await userService.store(user)
 
-    const userFound = await userService.show(createdUser.code);
-
-    expect(userFound.email).toBe(inputedUser.email);
+    // then: property is_temporary_password is true
+    expect(createdUser.is_temporary_password).toBe(true)
   });
 
-  it('should return not found error when try find an user', async () => {
-    const userFound = userService.show(faker.string.uuid());
+  // it('should send an email with the login link and password', async () => {
+  //   // given: manager creation is successful
+  //   // when: the process completes
+  //   // then: an email is sent to the manager with access instructions
+  // });
 
-    await expect(userFound).rejects.toThrow(NotFoundException);
-    await expect(userFound).rejects.toThrow(ErrorsHelpers.USER_NOT_FOUND);
-  });
+  // it('should reject creation if authenticated user is not ADMIN', async () => {
+  //   // given: an authenticated user with role MANAGER
+  //   // when: tries to create a user with role MANAGER
+  //   // then: return 403 Forbidden
+  // });
+
+  // it('should reject creation if email already exists', async () => {
+  //   // given: a user already exists with the provided email
+  //   // when: a new user is created using the same email
+  //   // then: return 400 Bad Request with duplication error
+  // });
 });

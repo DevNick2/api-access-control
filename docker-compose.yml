@@ -21,6 +21,8 @@ services:
   api-access-control:
     container_name: api-access-control
     restart: always
+    env_file:
+      - .env.docker
     build:
       context: .
       dockerfile: Dockerfile.dev

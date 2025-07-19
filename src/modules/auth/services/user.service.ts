@@ -1,30 +1,55 @@
 import {
   BadRequestException,
+  Inject,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { Users } from 'src/entities/user.entity';
+import { User, UserProfile } from 'src/entities/user.entity';
 import { UserStoreDTO, UserUpdateDTO } from '../dto/user.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { MoreThanOrEqual, Repository } from 'typeorm';
 import { ErrorsHelpers } from 'src/shared/helpers/errors.helper';
+import { Role } from 'src/entities/role.entity';
+import { HashHelpers } from 'src/shared/helpers/hash.helper';
 
 @Injectable()
 export class UserService {
   constructor(
-    @InjectRepository(Users) private usersRepository: Repository<Users>,
+    @InjectRepository(User) private usersRepository: Repository<User>,
+    @InjectRepository(Role) private rolesRepository: Repository<Role>,
+    @Inject()
+    private hashHelper: HashHelpers,
   ) {}
 
-  async store(payload: UserStoreDTO): Promise<Users> {
+  async store({ roles, ...payload }: UserStoreDTO): Promise<User> {
     try {
-      const user = await this.usersRepository.save(payload);
+      const prepareUser = this.usersRepository.create(payload);
+
+      if (roles) {
+        let payloadRoles = {}
+
+        for (const roleKey of roles) {
+          payloadRoles[roleKey] = true
+        }
+
+        prepareUser.roles = await this.rolesRepository.save(payloadRoles)
+      }
+
+      const password = await this.hashHelper.generateHash(payload.password)
+
+      const user = await this.usersRepository.save({
+        ...prepareUser,
+        password,
+        is_temporary_password: true
+      })
 
       return user;
     } catch (e) {
+      console.log(e)
       throw e;
     }
   }
-  async show(code: string): Promise<Users> {
+  async show(code: string): Promise<User> {
     try {
       const user = await this.usersRepository.findOne({
         where: { code },
@@ -37,7 +62,7 @@ export class UserService {
       throw e;
     }
   }
-  async showByEmail(email: string): Promise<Users> {
+  async showByEmail(email: string): Promise<User> {
     try {
       const user = await this.usersRepository.findOne({
         where: {
@@ -53,12 +78,12 @@ export class UserService {
       throw e;
     }
   }
-  async showByOTP(otp: number): Promise<Users> {
+  async showByOTP(otp: number): Promise<User> {
     try {
       const user = await this.usersRepository.findOne({
         where: {
-          otp,
-          otp_expires: MoreThanOrEqual(new Date()),
+          otp_code: otp,
+          otp_code_expires_at: MoreThanOrEqual(new Date()),
         },
       });
 
@@ -72,7 +97,7 @@ export class UserService {
   }
   list() {}
   delete() {}
-  async update(code: string, payload: UserUpdateDTO): Promise<Users> {
+  async update(code: string, payload: UserUpdateDTO): Promise<User> {
     try {
       const prepare = this.usersRepository
         .createQueryBuilder()
