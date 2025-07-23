@@ -7,6 +7,7 @@ import {
   IsEmail,
   IsEnum,
   IsNumber,
+  IsOptional,
   IsString,
   IsUUID,
   ValidateIf,
@@ -61,7 +62,7 @@ export class UserStoreDTO {
   @IsEnum(UserProfile, {
     each: true
   })
-  profile: Exclude<UserProfile, 'admin'>;
+  profile: UserProfile;
 
   @ApiProperty({
     required: true,
@@ -72,7 +73,6 @@ export class UserStoreDTO {
   @ApiProperty({
     required: false,
   })
-
   @ValidateIf(o => o.profile === UserProfile.USER)
   @IsArray()
   @ArrayNotEmpty()
@@ -80,6 +80,11 @@ export class UserStoreDTO {
     each: true
   })
   roles?: RolesList[]
+
+  // 
+  @IsUUID('4')
+  @IsOptional()
+  company_code?: string
 }
 export class UserUpdateDTO {
   @ApiProperty({

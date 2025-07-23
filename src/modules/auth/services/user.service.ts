@@ -11,18 +11,28 @@ import { MoreThanOrEqual, Repository } from 'typeorm';
 import { ErrorsHelpers } from 'src/shared/helpers/errors.helper';
 import { Role } from 'src/entities/role.entity';
 import { HashHelpers } from 'src/shared/helpers/hash.helper';
+import { Company } from 'src/entities/company.entity';
 
 @Injectable()
 export class UserService {
   constructor(
     @InjectRepository(User) private usersRepository: Repository<User>,
     @InjectRepository(Role) private rolesRepository: Repository<Role>,
+    @InjectRepository(Company) private companiesRepository: Repository<Company>,
     @Inject()
     private hashHelper: HashHelpers,
   ) {}
 
   async store({ roles, ...payload }: UserStoreDTO): Promise<User> {
     try {
+      let company: Company = undefined
+
+      if (payload.profile !== UserProfile.ADMIN) {
+        if (!payload.company_code) throw new BadRequestException('Company is required to create a user!')
+
+          company = await this.companiesRepository.findOne({ where: { code: payload.company_code }})
+      }
+
       const prepareUser = this.usersRepository.create(payload);
 
       if (roles) {
@@ -40,12 +50,12 @@ export class UserService {
       const user = await this.usersRepository.save({
         ...prepareUser,
         password,
-        is_temporary_password: true
+        is_temporary_password: true,
+        company
       })
 
       return user;
     } catch (e) {
-      console.log(e)
       throw e;
     }
   }

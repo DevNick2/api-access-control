@@ -10,9 +10,10 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { User } from 'src/entities/user.entity';
 import { JwtProviderService } from 'src/shared/services/jwt-provider.service';
 import { Role } from 'src/entities/role.entity';
+import { Company } from 'src/entities/company.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([User, Role])],
+  imports: [TypeOrmModule.forFeature([User, Role, Company])],
   providers: [
     AuthService,
     SessionService,

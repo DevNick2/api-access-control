@@ -1,4 +1,4 @@
-import { TestingAuthModule } from 'src/shared/test/utils/setup.util';
+import { repository, TestingAuthModule } from 'src/shared/test/utils/setup.util';
 import { Repository } from 'typeorm';
 import { User } from 'src/entities/user.entity';
 import { MockType } from 'src/shared/test/utils/__util';
@@ -9,11 +9,14 @@ import { BadRequestException } from '@nestjs/common';
 import { ErrorsHelpers } from 'src/shared/helpers/errors.helper';
 import { AuthService } from '../services/auth.service';
 import { Reflector } from '@nestjs/core';
-import { faker } from '@faker-js/faker/.';
+import { faker } from '@faker-js/faker';
 import { JwtService, TokenExpiredError } from '@nestjs/jwt';
 import * as request from 'supertest';
 import { UserResources } from '../resources/user.resource';
 import { SessionService } from '../services/session.service';
+import { Role } from 'src/entities/role.entity';
+import { Company } from 'src/entities/company.entity';
+import { Device } from 'src/entities/device.entity';
 
 describe('Login and Authentication', () => {
   let app;
@@ -25,7 +28,26 @@ describe('Login and Authentication', () => {
   let userRepository: MockType<Repository<User>>;
 
   beforeEach(async () => {
-    const testingModule = await TestingAuthModule({ withMockedDatabase: true });
+    const testingModule = await TestingAuthModule({
+      mockDatabase: [
+        {
+          provide: getRepositoryToken(User),
+          useFactory: repository,
+        },
+        {
+          provide: getRepositoryToken(Company),
+          useFactory: repository,
+        },
+        {
+          provide: getRepositoryToken(Role),
+          useFactory: repository,
+        },
+        {
+          provide: getRepositoryToken(Device),
+          useFactory: repository,
+        },
+      ]
+    });
 
     userRepository = testingModule.get<MockType<Repository<User>>>(
       getRepositoryToken(User),

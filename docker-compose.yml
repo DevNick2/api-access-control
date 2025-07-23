@@ -1,7 +1,18 @@
+version: '3.8'
+
 services:
+  redis:
+    image: redis:7.2
+    container_name: redis
+    ports:
+      - '6379:6379'
+    volumes:
+      - redis_data:/data
+    restart: always
+
   access-control-db:
-    image: postgres
-    container_name: access_control_db
+    image: postgres:15
+    container_name: access-control-db
     healthcheck:
       test: ['CMD-SHELL', 'pg_isready -U postgres']
       interval: 10s
@@ -10,28 +21,36 @@ services:
       timeout: 10s
     restart: always
     ports:
-      - 5432:5432
+      - '5432:5432'
     environment:
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres
-      - POSTGRES_MULTIPLE_DATABASES=access_control_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: postgres
     volumes:
-      - ./db/pgdata:/data/postgres
+      - postgres_data:/var/lib/postgresql/data
       - ./db/init:/docker-entrypoint-initdb.d
+
   api-access-control:
     container_name: api-access-control
-    restart: always
-    env_file:
-      - .env.docker
     build:
       context: .
       dockerfile: Dockerfile.dev
+    restart: always
+    env_file:
+      - .env.development
     ports:
-      - 3000:3000
+      - '3000:3000'
     volumes:
       - ./:/api
+      - /api/node_modules
     depends_on:
+      redis:
+        condition: service_started
       access-control-db:
         condition: service_healthy
     extra_hosts:
       - 'host.docker.internal:host-gateway'
+
+volumes:
+  redis_data:
+  postgres_data:

@@ -6,17 +6,22 @@ import { AuthService } from 'src/modules/auth/services/auth.service';
 import { DataSource, Repository } from 'typeorm';
 import { MockType } from './__util';
 
-import * as dataSource from '../../../../db/data-source';
+import dataSource from '../../../../db/data-source';
 import { UserService } from 'src/modules/auth/services/user.service';
 import { HashHelpers } from 'src/shared/helpers/hash.helper';
-import { getRepositoryToken, TypeOrmModule } from '@nestjs/typeorm';
-import { User } from 'src/entities/user.entity';
+import { TypeOrmModule } from '@nestjs/typeorm';
 import { TypeormService } from 'src/shared/services/typeorm.service';
 import { SessionService } from 'src/modules/auth/services/session.service';
 import { JwtProviderService } from 'src/shared/services/jwt-provider.service';
 import { AuthGuard } from 'src/shared/guard/auth.guard';
 import { APP_GUARD, Reflector } from '@nestjs/core';
-import { Role } from 'src/entities/role.entity';
+import { CompanyService } from 'src/modules/company/services/company.service';
+import { CompanyController } from 'src/modules/company/controllers/company.controller';
+import { DeviceService } from 'src/modules/company/services/device.service';
+import { RedisService } from 'src/shared/services/redis.service';
+import { KevyService } from 'src/shared/services/kevy.service';
+import { AxiosService } from 'src/shared/services/axios.service';
+import { EncrypterService } from 'src/shared/services/encrypter.service';
 
 export const repository: () => MockType<Repository<any>> = jest.fn(() => ({
   save: jest.fn(),
@@ -36,14 +41,16 @@ export const repository: () => MockType<Repository<any>> = jest.fn(() => ({
 }));
 
 export async function TestingAuthModule({
-  withMockedDatabase,
+  mockDatabase = [],
+  realDatabase = []
 }: {
-  withMockedDatabase?: boolean;
+  mockDatabase?
+  realDatabase?
 }): Promise<TestingModule> {
   return await Test.createTestingModule({
     imports: [
       TypeormService,
-      ...(!withMockedDatabase ? [TypeOrmModule.forFeature([User, Role])] : []),
+      ...(realDatabase.length ? [TypeOrmModule.forFeature(realDatabase)] : []),
       ConfigModule.forRoot({
         envFilePath: `.env.test`,
       }),
@@ -57,39 +64,35 @@ export async function TestingAuthModule({
       UserService,
       HashHelpers,
       SessionService,
+      CompanyService,
+      DeviceService,
       JwtProviderService,
+      RedisService,
+      AxiosService,
+      EncrypterService,
       {
         provide: APP_GUARD,
         useClass: AuthGuard,
       },
-      ...(withMockedDatabase
-        ? [
-            {
-              provide: getRepositoryToken(User),
-              useFactory: repository,
-            },
-            {
-              provide: getRepositoryToken(Role),
-              useFactory: repository,
-            },
-          ]
-        : []),
+      KevyService,
+      ...mockDatabase
     ],
-    controllers: [AuthController],
+    controllers: [AuthController, CompanyController],
   }).compile();
 }
 
-export function TestingDatabaseInitialize(): DataSource {
-  if (!dataSource.default.isInitialized) {
-    dataSource.default
-      .initialize()
-      .then(() => {
-        console.log('Database testing connection opened!');
-      })
-      .catch((e) => {
-        console.log('Database testing can´t be initialized!', e);
-      });
+export async function TestingDatabaseInitialize(): Promise<DataSource> {
+  if (!dataSource.isInitialized) {
+    try {
+      await dataSource.initialize()
+
+      console.log('Database testing connection opened!');
+
+      return dataSource
+    } catch (e) {
+      console.log('Database testing can´t be initialized!', e);
+    }
   }
 
-  return dataSource.default;
+  return dataSource;
 }

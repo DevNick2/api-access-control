@@ -22,6 +22,7 @@ import {
 import { UserService } from '../services/user.service';
 import { AuthResources } from '../resources/auth.resource';
 import { UserResources } from '../resources/user.resource';
+import { Roles } from 'src/shared/decorators/roles.decorator';
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -47,22 +48,27 @@ export class AuthController {
     return new AuthResources(login);
   }
 
-  @Throttle({ short: { limit: 2, ttl: 1000 }, long: { limit: 5, ttl: 60000 } })
-  @Public()
-  @HttpCode(HttpStatus.CREATED)
-  @Post('singup')
-  async signUp(@Body() payload: UserStoreDTO): Promise<UserResources> {
-    const user = await this.userService.store(payload);
+  // @Throttle({ short: { limit: 2, ttl: 1000 }, long: { limit: 5, ttl: 60000 } })
+  // @Public()
+  // @HttpCode(HttpStatus.CREATED)
+  // @Roles({ profile: 'admin' })
+  // @Post('user')
+  // async createManager(@Body() payload: UserStoreDTO): Promise<UserResources> {
+  //   const user = await this.userService.store(payload);
 
-    return new UserResources(user);
-  }
+  //   return new UserResources(user);
+  // }
+  
+  // @Throttle({ short: { limit: 2, ttl: 1000 }, long: { limit: 5, ttl: 60000 } })
+  // @Public()
+  // @HttpCode(HttpStatus.CREATED)
+  // @Roles({ profile: 'manager' })
+  // @Post('companies/:code/user')
+  // async createCompanyUser(@Body() payload: UserStoreDTO): Promise<UserResources> {
+  //   const user = await this.userService.store(payload);
 
-  @Public()
-  @HttpCode(HttpStatus.OK)
-  @Post('validate-otp')
-  async validateOtp(@Body() payload: VerifyOtpDTO) {
-    return await this.authService.validateOtpToNewUser(payload);
-  }
+  //   return new UserResources(user);
+  // }
 
   @HttpCode(HttpStatus.OK)
   @Get('me')

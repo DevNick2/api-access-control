@@ -1,6 +1,7 @@
 import { Entity, Column, ManyToMany, JoinColumn, ManyToOne, OneToMany, OneToOne } from 'typeorm';
 import CustomBaseEntity from './base.entity';
 import { Role } from './role.entity';
+import { Company } from './company.entity';
 
 export enum UserProfile {
   ADMIN = 'admin',
@@ -33,9 +34,9 @@ export class User extends CustomBaseEntity {
   @JoinColumn({ name: 'role_id', referencedColumnName: 'id' })
   roles?: Role
 
-  // @ManyToOne(() => Company, (company) => company.user, { cascade: false, nullabel: true })
-  // @JoinColumn({ name: 'company_id', referencedColumnName: 'id' })
-  // company: Company
+  @ManyToOne(() => Company, (company) => company.user, { cascade: false, nullable: true })
+  @JoinColumn({ name: 'company_id', referencedColumnName: 'id' })
+  company?: Company
 
   @Column({ type: 'timestamptz', nullable: true })
   last_login_at?: Date

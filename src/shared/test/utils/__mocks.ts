@@ -1,4 +1,4 @@
-import { faker } from '@faker-js/faker/.';
+import { faker } from '@faker-js/faker';
 import { User, UserProfile } from 'src/entities/user.entity';
 
 export function generateRandomUser(): User {

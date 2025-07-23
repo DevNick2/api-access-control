@@ -28,3 +28,31 @@ export function IsDateTime(validationOptions?: ValidationOptions) {
     });
   };
 }
+
+export function IsCNPJ(validationOptions?: ValidationOptions) {
+  return function (object: object, propertyName: string) {
+    registerDecorator({
+      name: 'IsCNPJ',
+      target: object.constructor,
+      propertyName: propertyName,
+      constraints: [],
+      options: validationOptions,
+      validator: {
+        validate(document: string) {
+          const cnpj = document.replaceAll(/\W/g, '');
+          return (
+            typeof cnpj === 'string' &&
+            (cnpj.length === 14)
+          );
+        },
+        defaultMessage(args: ValidationArguments) {
+          return typeof args.value !== 'string'
+            ? 'Document must be a string!'
+            : args.value.length < 11 || args.value.length > 14
+              ? 'Document need is a CNPJ'
+              : 'Document is invalid!';
+        },
+      },
+    });
+  };
+}

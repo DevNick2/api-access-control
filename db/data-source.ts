@@ -1,4 +1,5 @@
 import * as dotenv from 'dotenv';
+import { resolve } from 'path';
 
 dotenv.config({ path: '.env.' + (process.env.NODE_ENV || 'development') });
 
@@ -13,12 +14,12 @@ export default new DataSource({
   database: process.env.DATABASE_DB,
   synchronize: false,
   dropSchema: false,
-  logging: false,
+  logging: process.env.NODE_ENV !== 'production',
   logger: 'file',
   entities: [
-    process.env.NODE_ENV !== 'development' && process.env.NODE_ENV !== 'test'
-      ? 'dist/**/*.entity{.ts,.js}'
-      : 'src/entities/**/*.entity.ts',
+    resolve(__dirname, process.env.NODE_ENV !== 'development' && process.env.NODE_ENV !== 'test' 
+      ? '../dist/**/*.entity{.ts,.js}'
+      : '../src/entities/*.entity.ts')
   ],
   migrations: ['db/migrations/*.ts'],
 });

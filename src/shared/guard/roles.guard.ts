@@ -1,15 +1,16 @@
 import { Injectable, CanActivate, ExecutionContext, ForbiddenException } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { Roles } from '../decorators/roles.decorator';
+import { RolesList } from 'src/entities/role.entity';
 
 @Injectable()
 export class RolesGuard implements CanActivate {
   constructor(private reflector: Reflector) {}
 
   canActivate(context: ExecutionContext): boolean {
-    const roles = this.reflector.get(Roles, context.getHandler());
+    const required = this.reflector.get(Roles, context.getHandler());
 
-    if (!roles) {
+    if (!required) {
       return true;
     }
 
@@ -17,24 +18,17 @@ export class RolesGuard implements CanActivate {
 
     const user = request.user;
 
-    // Aqui tem que ter o enum da entidade de roles e profile
-    const userRoles = user?.roles
+    const userRoles: RolesList[] = user?.roles || []
     const userProfile = user?.profile
 
-    if (!userRoles) {
-      throw new ForbiddenException();
-    }
+    // Verifica se o perfil é permitido
+    if (required.profile.length && !required.profile.includes(userProfile)) throw new ForbiddenException()
 
-    
-    if (userProfile === roles.profile) {
-      // enum profile
-      // by pass admin
-      if (userProfile === "admin") return true
-
-      if (!roles.roles.includes(userRoles)) throw new ForbiddenException()
-
-      return true
-    }
+    // Regra específica para manager
+    if (userProfile === "manager" && required.roles?.some((role: RolesList) => [RolesList.CAN_WRITE_COMPANIES, RolesList.CAN_READ_COMPANIES].includes(role))) throw new ForbiddenException()
+      
+    // Verifica se o usuário possui as permissões
+    if (userProfile !== "manager" && required.roles?.length && !required.roles?.every((role: RolesList) => userRoles.includes(role))) throw new ForbiddenException()
 
     return true
   }

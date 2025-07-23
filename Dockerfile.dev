@@ -1,15 +1,28 @@
 FROM node:20-alpine
+
+# Diretório de trabalho no container
 WORKDIR /api
-COPY package*.json ./
-COPY yarn.lock ./
+
+COPY package.json yarn.lock ./
+
 RUN yarn install
+
+# Instala pacotes necessários para Chromium e Puppeteer
 RUN apk add --no-cache \
-  poppler-utils \
-  poppler-data \
+  chromium \
   udev \
   ttf-freefont \
-  chromium
+  harfbuzz \
+  nss \
+  freetype \
+  poppler-utils \
+  poppler-data
 
+# Define o caminho executável para Puppeteer
 ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser
+
 COPY . .
-CMD [ "yarn", "start:dev" ]
+
+EXPOSE 3000
+
+CMD ["yarn", "start:dev"]
