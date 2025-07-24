@@ -12,11 +12,13 @@ import { DeviceService } from './services/device.service';
 import { RedisService } from 'src/shared/services/redis.service';
 import { EncrypterService } from 'src/shared/services/encrypter.service';
 import { AxiosService } from 'src/shared/services/axios.service';
+import { PersonService } from './services/person.service';
+import { Person } from 'src/entities/person.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Company, Device, User, Role])],
-  providers: [CompanyService, UserService, HashHelpers, DeviceService, RedisService, EncrypterService, AxiosService],
+  imports: [TypeOrmModule.forFeature([Company, Device, User, Role, Person])],
+  providers: [CompanyService, UserService, HashHelpers, DeviceService, RedisService, EncrypterService, AxiosService, PersonService],
   controllers: [CompanyController],
-  exports: [CompanyService, DeviceService],
+  exports: [CompanyService, DeviceService, PersonService],
 })
 export class CompanyModule {}

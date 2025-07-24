@@ -9,6 +9,7 @@ export function generateRandomUser(): User {
     email: faker.internet.email(),
     password: faker.internet.password(),
     profile: UserProfile.USER,
+    active_roles: [],
     created_at: undefined,
     updated_at: undefined,
     hasId: jest.fn(),

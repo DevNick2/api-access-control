@@ -7,6 +7,7 @@ import { getRepositoryToken } from "@nestjs/typeorm";
 import { Company } from "src/entities/company.entity";
 import { Device } from "src/entities/device.entity";
 import { User } from "src/entities/user.entity";
+import { Person } from "src/entities/person.entity";
 
 describe('Roles Management', () => {
   let app;
@@ -30,7 +31,12 @@ describe('Roles Management', () => {
       {
         provide: getRepositoryToken(Device),
         useFactory: repository,
-      },]
+      },
+      {
+        provide: getRepositoryToken(Person),
+        useFactory: repository,
+      },
+    ]
     });
 
     reflector = testingModule.get<Reflector>(Reflector);
@@ -85,5 +91,28 @@ describe('Roles Management', () => {
     // when: the guard is evaluated
     // then: access should be denied with ForbiddenException
     expect(() => rolesGuard.canActivate(context as ExecutionContext)).toThrow(ForbiddenException);
+  });
+  it('should allow access when is user with role can_write_people', () => {
+    // given: the user has profile "manager" and role "can_read_companies"
+    const context: any = {
+      switchToHttp: () => ({
+        getRequest: () => ({
+          user: {
+            profile: 'user',
+            roles: [RolesList.CAN_WRITE_PEOPLE],
+          },
+        }),
+      }),
+      getHandler: () => {},
+    };
+
+    reflector.get = jest.fn().mockReturnValue({
+      profile: ['user'],
+      roles: [RolesList.CAN_WRITE_PEOPLE],
+    });
+
+    // when: the guard is evaluated
+    // then: access should be denied with ForbiddenException
+    expect(() => rolesGuard.canActivate(context as ExecutionContext)).toBeTruthy();
   });
 });

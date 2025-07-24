@@ -11,6 +11,10 @@ import { EncrypterService } from "src/shared/services/encrypter.service";
 import { AxiosResponse } from "axios";
 import { RedisService } from "src/shared/services/redis.service";
 
+type CreateObjectControlId = {
+  object: string,
+  values: object[]
+}
 @Injectable()
 export class DeviceService {
   private readonly logger = new Logger(DeviceService.name)
@@ -51,7 +55,6 @@ export class DeviceService {
             break;
           }
         } catch (e) {
-          console.log(e)
           this.logger.warn(`Tentativa ${attempt} de login para o dispositivo ${newDevice.name}`)
 
           if (attempt === 2) this.logger.error(`Falha ao logar no dispositivo ${newDevice.name} após 2 tentativas`)
@@ -64,7 +67,7 @@ export class DeviceService {
     }
   }
 
-  private async loginOnDevice (device: Device): Promise<AxiosResponse> {
+  async loginOnDevice (device: Device): Promise<AxiosResponse> {
     const client = await this.axiosService.setup(`http://${device.ip_address}`)
 
     const response = await client.post('/login.fcgi', { user: device.user, password: this.encrypterService.decryptPassword(device.password, device.iv) })
@@ -72,13 +75,44 @@ export class DeviceService {
     return response
   }
 
-  async list (company_code: CompanyCodeDTO['company_code']): Promise<Device[]> {
+  async dispatchToDevices (company_code: CompanyCodeDTO['company_code'], payload: CreateObjectControlId): Promise<{ device: Device; response: AxiosResponse }[]> {
+    const devices = await this.list(company_code, { is_active: true })
+
+    const responses: { device: Device, response: AxiosResponse }[] = []
+
+    try {
+      for (const device of devices) {
+        try {
+          const sessionToken = await this.redisService.get(`device:session:${device.code}`)
+
+          const client = await this.axiosService.setup(`http://${device.ip_address}`)
+      
+          const response = await client.post(`/create_objects.fcgi?session=${sessionToken}`, payload)
+
+          responses.push({
+            device,
+            response
+          })
+        } catch (e) {
+          this.logger.error(`Não foi possível sincronizar os dados com o dispositivo ${device.name}`, e)
+        }
+      }
+
+      return responses
+
+    } catch (e) {
+      throw e
+    }
+  }
+
+  async list (company_code: CompanyCodeDTO['company_code'], search: object = {}): Promise<Device[]> {
     try {
       const devices = await this.devicesRepository.find({
         where: {
           company: {
             code: company_code
-          }
+          },
+          ...search
         },
         relations: {
           company: true

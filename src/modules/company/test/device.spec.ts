@@ -24,6 +24,7 @@ import { DeviceResources } from "../resources/device.resource";
 import { AxiosInstance, AxiosResponse } from "axios";
 import { RedisService } from "src/shared/services/redis.service";
 import { DeviceService } from "../services/device.service";
+import { Person } from "src/entities/person.entity";
 
 describe('Devices management', () => {
   let app
@@ -45,7 +46,7 @@ describe('Devices management', () => {
 
   beforeEach(async () => {
     const testingModule = await TestingAuthModule({
-      realDatabase: [Company, User, Role, Device],
+      realDatabase: [Company, User, Role, Device, Person],
     });
 
     userRepository = testingModule.get<MockType<Repository<User>>>(
@@ -293,6 +294,52 @@ describe('Devices management', () => {
     // and: a malformed or truncated IV
     expect(() => encrypterService.decryptPassword(encryptedCorruptedPassword, iv)).toThrow()
   });
+  it('should dispatch payload to all active devices with valid session and return responses', async () => {
+    // Arrange
+    const company_code = 'company-uuid-123';
+    const payload = {
+      object: 'user',
+      values: [{ id: faker.number.int(), name: faker.person.fullName(), registration: faker.string.numeric(10), user_type_id: 1 }]
+    };
+
+    const mockDevices = [
+      { code: faker.string.uuid(), name: 'Device 1', ip_address: faker.internet.ipv4() } as Device,
+      { code: faker.string.uuid(), name: 'Device 2', ip_address: faker.internet.ipv4() } as Device,
+    ];
+
+    const mockAxiosInstance = {
+      post: jest.fn().mockResolvedValue({
+        status: 200,
+        data: {
+          result: 'success'
+        }
+      }),
+      interceptors: { request: { use: jest.fn() }, response: { use: jest.fn() } },
+    } as any;
+
+    // Mocks
+    deviceService.list = jest.fn().mockResolvedValue(mockDevices);
+    redisService.get = jest.fn().mockResolvedValue('valid-session-token')
+    axiosService.setup = jest.fn().mockResolvedValue(mockAxiosInstance);
+
+    // Act
+    const responses = await deviceService.dispatchToDevices(company_code, payload);
+
+    // Assert
+    expect(deviceService.list).toHaveBeenCalledWith(company_code, { is_active: true });
+    expect(redisService.get).toHaveBeenCalledTimes(2);
+    expect(axiosService.setup).toHaveBeenNthCalledWith(1, `http://${mockDevices[0].ip_address}`);
+    expect(axiosService.setup).toHaveBeenNthCalledWith(2, `http://${mockDevices[1].ip_address}`);
+    expect(mockAxiosInstance.post).toHaveBeenCalledTimes(2);
+    expect(mockAxiosInstance.post).toHaveBeenCalledWith(
+      '/create_objects.fcgi?session=valid-session-token',
+      payload
+    );
+
+    expect(responses).toHaveLength(2);
+    expect(responses[0].device.code).toBe(mockDevices[0].code);
+    expect(responses[1].device.code).toBe(mockDevices[1].code);
+  })
   
   afterAll(async () => {
     await app.close();

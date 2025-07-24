@@ -18,8 +18,10 @@ export class RolesGuard implements CanActivate {
 
     const user = request.user;
 
-    const userRoles: RolesList[] = user?.roles || []
+    const userRoles: RolesList[] = user?.active_roles || []
     const userProfile = user?.profile
+
+    console.log(userRoles, userProfile)
 
     // Verifica se o perfil é permitido
     if (required.profile.length && !required.profile.includes(userProfile)) throw new ForbiddenException()

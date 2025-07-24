@@ -16,6 +16,7 @@ import { JwtService, TokenExpiredError, JsonWebTokenError } from "@nestjs/jwt";
 import * as request from 'supertest';
 import { CompanyResources } from "../resources/company.resource";
 import { Device } from "src/entities/device.entity";
+import { Person } from "src/entities/person.entity";
 
 describe('Companies management', () => {
   let app
@@ -32,7 +33,7 @@ describe('Companies management', () => {
 
   beforeEach(async () => {
     const testingModule = await TestingAuthModule({
-      realDatabase: [Company, User, Role, Device],
+      realDatabase: [Company, User, Role, Device, Person],
     });
 
     userRepository = testingModule.get<MockType<Repository<User>>>(

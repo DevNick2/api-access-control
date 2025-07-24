@@ -17,6 +17,7 @@ import { CompanyStoreDTO } from 'src/modules/company/dto/company.dto';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { Role } from 'src/entities/role.entity';
 import { Device } from 'src/entities/device.entity';
+import { Person } from 'src/entities/person.entity';
 
 describe('User Management', () => {
   let userService: UserService;
@@ -28,7 +29,7 @@ describe('User Management', () => {
 
   beforeEach(async () => {
     const testingModule = await TestingAuthModule({
-      realDatabase: [User, Role, Company, Device]
+      realDatabase: [User, Role, Company, Device, Person]
     });
 
     userService = testingModule.get<UserService>(UserService);

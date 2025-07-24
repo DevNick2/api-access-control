@@ -22,6 +22,7 @@ import { RedisService } from 'src/shared/services/redis.service';
 import { KevyService } from 'src/shared/services/kevy.service';
 import { AxiosService } from 'src/shared/services/axios.service';
 import { EncrypterService } from 'src/shared/services/encrypter.service';
+import { PersonService } from 'src/modules/company/services/person.service';
 
 export const repository: () => MockType<Repository<any>> = jest.fn(() => ({
   save: jest.fn(),
@@ -69,6 +70,7 @@ export async function TestingAuthModule({
       JwtProviderService,
       RedisService,
       AxiosService,
+      PersonService,
       EncrypterService,
       {
         provide: APP_GUARD,

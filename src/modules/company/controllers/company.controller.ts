@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Inject, Param, Post, Put, UseGuards } from "@nestjs/common";
+import { Body, Controller, Get, HttpCode, HttpStatus, Inject, Param, Post, Request, UseGuards } from "@nestjs/common";
 import { ApiTags } from "@nestjs/swagger";
 import { Roles } from "src/shared/decorators/roles.decorator";
 import { CompanyCodeDTO, CompanyStoreDTO } from "../dto/company.dto";
@@ -8,10 +8,13 @@ import { CompanyResources } from "../resources/company.resource";
 import { UserStoreDTO } from "src/modules/auth/dto/user.dto";
 import { UserResources } from "src/modules/auth/resources/user.resource";
 import { UserService } from "src/modules/auth/services/user.service";
-import { DeviceDeleteDTO, DeviceShowDTO, DeviceStoreDTO, DeviceUpdateDTO } from "../dto/device.dto";
+import { DeviceStoreDTO } from "../dto/device.dto";
 import { DeviceService } from "../services/device.service";
 import { DeviceResources } from "../resources/device.resource";
 import { RolesList } from "src/entities/role.entity";
+import { PerssonStoreDTO } from "../dto/person.dto";
+import { PersonResources } from "../resources/person.resources";
+import { PersonService } from "../services/person.service";
 
 @ApiTags('Company')
 @Controller('companies')
@@ -20,7 +23,8 @@ export class CompanyController {
   constructor(
     @Inject() private companyService: CompanyService,
     @Inject() private userService: UserService,
-    @Inject() private devicesService: DeviceService
+    @Inject() private devicesService: DeviceService,
+    @Inject() private personService: PersonService
   ) {}
 
   @HttpCode(HttpStatus.CREATED)
@@ -32,10 +36,11 @@ export class CompanyController {
     return new CompanyResources(company);
   }
 
+  // Company Users
   @HttpCode(HttpStatus.CREATED)
   @Roles({ profile: ['admin', 'manager'] })
   @Post(':code/users')
-  async createUsers(@Body() payload: UserStoreDTO, @Param(':code') code: CompanyCodeDTO['company_code']): Promise<UserResources> {
+  async createUsers(@Body() payload: UserStoreDTO, @Param('code') code: CompanyCodeDTO['company_code']): Promise<UserResources> {
     const user = await this.userService.store({
       ...payload,
       company_code: code
@@ -44,10 +49,11 @@ export class CompanyController {
     return new UserResources(user);
   }
   
+  // Company Devices
   @HttpCode(HttpStatus.CREATED)
   @Roles({ profile: ['admin', 'manager'] })
   @Post(':code/devices')
-  async createDevice(@Body() payload: DeviceStoreDTO, @Param(':code') code: CompanyCodeDTO['company_code']): Promise<DeviceResources> {
+  async createDevice(@Body() payload: DeviceStoreDTO, @Param('code') code: CompanyCodeDTO['company_code']): Promise<DeviceResources> {
     const device = await this.devicesService.store(code, payload)
 
     return new DeviceResources(device);
@@ -56,10 +62,20 @@ export class CompanyController {
   @HttpCode(HttpStatus.OK)
   @Roles({ profile: ['admin', 'manager'] })
   @Get(':code/devices')
-  async listDevice(@Param(':code') code: CompanyCodeDTO['company_code']): Promise<DeviceResources[]> {
+  async listDevice(@Param('code') code: CompanyCodeDTO['company_code']): Promise<DeviceResources[]> {
     const devices = await this.devicesService.list(code)
 
     return DeviceResources.list(devices)
+  }
+
+  // Company Person
+  @HttpCode(HttpStatus.CREATED)
+  @Roles({ profile: ['admin', 'manager', 'user'], roles: [RolesList.CAN_WRITE_PEOPLE] })
+  @Post(':code/person')
+  async createPerson(@Param('code') code: CompanyCodeDTO['company_code'], @Body() payload: PerssonStoreDTO, @Request() req): Promise<PersonResources> {
+    const person = await this.personService.store(code, payload, req.user)
+
+    return new PersonResources(person)
   }
 
   // XXX TODO ::
@@ -82,5 +98,41 @@ export class CompanyController {
   // @Delete(':code/devices/:device_code')
   // async deleteDevice(@Param() params: DeviceDeleteDTO): Promise<''> {
   //   return '';
+  // }
+
+  // @HttpCode(HttpStatus.OK)
+  // @Roles({ profile: ['admin', 'manager', 'user'], roles: [RolesList.CAN_READ_PEOPLE] })
+  // @Get(':code/person')
+  // async listPerson(@Param('code') code: CompanyCodeDTO['company_code']): Promise<PersonResources[]> {
+  //   const person = await this.personService.list(code)
+
+  //   return PersonResources.list(person)
+  // }
+  
+  // @HttpCode(HttpStatus.OK)
+  // @Roles({ profile: ['admin', 'manager', 'user'], roles: [RolesList.CAN_READ_PEOPLE] })
+  // @Get(':code/person/:person_code')
+  // async showPerson(@Param() params: PersonShowDTO): Promise<PersonResources[]> {
+  //   const person = await this.personService.show(params)
+
+  //   return PersonResources.list(person)
+  // }
+  
+  // @HttpCode(HttpStatus.OK)
+  // @Roles({ profile: ['admin', 'manager', 'user'], roles: [RolesList.CAN_READ_PEOPLE] })
+  // @Put(':code/person/:person_code')
+  // async updatePerson(@Param() params: PersonShowDTO, @Body() payload: PersonUpdateDTO): Promise<PersonResources[]> {
+  //   const person = await this.personService.update(params, payload)
+
+  //   return new PersonResources(person)
+  // }
+  
+  // @HttpCode(HttpStatus.OK)
+  // @Roles({ profile: ['admin', 'manager', 'user'], roles: [RolesList.CAN_WRITE_PEOPLE] })
+  // @Delete(':code/person/:person_code')
+  // async deletePerson(@Param() params: PersonShowDTO): Promise<PersonResources> {
+  //   await this.personService.delete(params)
+
+  //   return true
   // }
 }

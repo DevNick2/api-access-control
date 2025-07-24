@@ -2,6 +2,7 @@ import { Column, Entity, JoinColumn, OneToMany } from "typeorm";
 import CustomBaseEntity from "./base.entity";
 import { User } from "./user.entity";
 import { Device } from "./device.entity";
+import { Person } from "./person.entity";
 
 @Entity()
 export class Company extends CustomBaseEntity {
@@ -42,6 +43,9 @@ export class Company extends CustomBaseEntity {
     }
   })
   domain: string
+
+  @OneToMany(() => Person, (person) => person.company, { cascade: false, nullable: true })
+  person?: Person
   
   @Column({ type: 'varchar', nullable: true })
   logo_url?: string

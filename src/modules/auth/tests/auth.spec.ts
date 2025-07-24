@@ -17,6 +17,7 @@ import { SessionService } from '../services/session.service';
 import { Role } from 'src/entities/role.entity';
 import { Company } from 'src/entities/company.entity';
 import { Device } from 'src/entities/device.entity';
+import { Person } from 'src/entities/person.entity';
 
 describe('Login and Authentication', () => {
   let app;
@@ -44,6 +45,10 @@ describe('Login and Authentication', () => {
         },
         {
           provide: getRepositoryToken(Device),
+          useFactory: repository,
+        },
+        {
+          provide: getRepositoryToken(Person),
           useFactory: repository,
         },
       ]

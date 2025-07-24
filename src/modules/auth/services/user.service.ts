@@ -63,6 +63,9 @@ export class UserService {
     try {
       const user = await this.usersRepository.findOne({
         where: { code },
+        relations: {
+          roles: true
+        }
       });
 
       if (!user) throw new NotFoundException(ErrorsHelpers.USER_NOT_FOUND);
