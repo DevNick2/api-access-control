@@ -13,7 +13,7 @@ export enum PersonType {
 export class Person extends CustomBaseEntity {
   @Column({ type: 'varchar', nullable: false })
   name: string;
-  
+
   @Column({ type: 'varchar', nullable: false })
   registration: string;
 

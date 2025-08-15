@@ -1,0 +1,13 @@
+flowchart TD
+    ApiCompany@{ shape: rect, label: "Api" }
+    UseCaseNewClient@{ shape: circle, label: "Como um usuário administrador, quero criar um novo cliente no sistema"}
+    UserAddNewClient@{ shape: manual-input, label: "Adiciona os dados do cliente (nome, dominio, email do gestor)" }
+    SendMailToCompany@{ shape: subproc, label: "Envia e-mail para o Gestor com o Link do Dashboard + a Senha Temporária" }
+    StoreValidator@{ shape: diam, label: "Cadastro com sucesso?" }
+
+    %% Gestão de novos clientes (Company)
+    UseCaseNewClient --> UserAddNewClient
+    UserAddNewClient -- "POST /companies" --> ApiCompany
+    ApiCompany --> StoreValidator
+    StoreValidator -- Sim (Gera a Senha temporária e o Link do Dashboard) --> SendMailToCompany --> UseCaseNewClient
+    StoreValidator -- Não (Já existe uma Company, Email inválido, Gestor já existe) --> UseCaseNewClient

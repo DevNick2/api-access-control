@@ -1,0 +1,14 @@
+flowchart TD
+    %% Gestão de Pessoa
+    UseCasePerson@{ shape: circle, label: "Como um usuário, com permissões adequeadas, quero adicionar uma nova pessoa e vincluar as regras de acesso a ela."}
+    ApiPerson@{ shape: fr-rect, label: "Endpoint companies/:code/person" }
+    UserAddNewPerson@{ shape: manual-input, label: "Preenche os dados da pessoa" }
+    Hw@{ shape: fr-rect, label: "Sincroniza com os dispositivos" }
+    NewPerson@{ shape: fr-rect, label: "Nova pessoa Criada"}
+    
+    UseCasePerson --> UserAddNewPerson
+    UserAddNewPerson --> ApiPerson
+    ApiPerson --> AddNewPersonValidator@{ shape: diam, label: "Adicionado com sucesso?" }
+    AddNewPersonValidator -- "Sim" --> NewPerson
+    NewPerson --> SyncingWithHW@{ shape: rounded, label: "Dispara a sincronização dos usuários com todos os dispotivos conectados"}
+    SyncingWithHW --> Hw -- "Retorna o ID da pessoa em cada dispositivo" --> ApiPerson

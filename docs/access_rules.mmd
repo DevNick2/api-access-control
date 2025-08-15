@@ -1,0 +1,34 @@
+classDiagram
+  class TimeSpanWeekday {
+    <<enumeration>>
+    SUNDAY
+    MONDAY
+    TUESDAY
+    WEDNESDAY
+    THURSDAY
+    FRIDAY
+    SATURDAY
+  }
+
+  class AccessOrchestratorService {
+    -accessRuleTimeZoneRepository: AccessRuleTimeZone
+    -personAccessRule: PersonAccessRule
+    -accessRuleRepository: AccessRule
+    -timeSpanRepository: TimeSpan
+    -timeZoneRepository: TimeZone
+
+    +defineAccessRule(company: Company, person: Person, payload: AccessRuleStoreDTO): void
+    +createAccessRule(): AccessRule
+    +joinPersonToAccessRule(): PersonAccessRule
+    +createRangeSet(): TimeZone
+    +createIntervalsFromSchedule(): TimeSpan
+    +joinAccessRulesToRangeSet(): AccessRuleTimeZone
+  }
+
+  class AccessRuleStoreDTO {
+    +weekdays: List~TimeSpanWeekday~
+    +start_time: String
+    +end_time: String
+  }
+  TimeSpanWeekday <|.. AccessRuleStoreDTO
+  AccessRuleStoreDTO --> AccessOrchestratorService

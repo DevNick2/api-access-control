@@ -3,15 +3,23 @@ import CustomBaseEntity from "./base.entity";
 import { User } from "./user.entity";
 import { Device } from "./device.entity";
 import { Person } from "./person.entity";
+import { AccessRule } from "./access_rule.entity";
+import { TimeZone } from "./time_zone.entity";
 
 @Entity()
 export class Company extends CustomBaseEntity {
-  @OneToMany(() => User, (user) => user.company, { cascade: false, nullable: false })
+  @OneToMany(() => User, (user) => user.company, { cascade: true, nullable: false })
   user: User
 
-  @OneToMany(() => Device, (device) => device.company, { cascade: false, nullable: false })
+  @OneToMany(() => Device, (device) => device.company, { cascade: true, nullable: false })
   @JoinColumn({ name: 'device_id', referencedColumnName: 'id' })
   device: Device
+
+  @OneToMany(() => AccessRule, (access_rule) => access_rule.company, { cascade: true, nullable: true })
+  access_rule?: AccessRule
+  
+  @OneToMany(() => TimeZone, (time_zone) => time_zone.company, { cascade: true, nullable: true })
+  time_zone?: TimeZone
   
   @Column({ type: 'varchar', nullable: false })
   name: string
@@ -44,7 +52,7 @@ export class Company extends CustomBaseEntity {
   })
   domain: string
 
-  @OneToMany(() => Person, (person) => person.company, { cascade: false, nullable: true })
+  @OneToMany(() => Person, (person) => person.company, { cascade: true, nullable: true })
   person?: Person
   
   @Column({ type: 'varchar', nullable: true })

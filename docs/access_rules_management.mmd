@@ -1,0 +1,27 @@
+flowchart TD
+    %% Gestão de Regras de Acesso
+    UseCaseRules@{ shape: circle, label: "Como um usuário, com permissões adequeadas, quero configurar as regras de acesso de uma pessoa"}
+    ApiRules@{ shape: rounded, label: "Endpoint companies/:code/person/:code/rules"}
+    UserSetAccessRules@{ shape: manual-input, label: "Configura as regras de acesso" }
+    Service@{ shape: fr-rect, label: "AcessOrchestratorService"}
+
+    AccessRuleTimeZone@{ shape: fr-rect, label: "Cria a relação entre AccessRule e TimeZone (access_rule_time_zone)"}
+    PersonAccessRule@{ shape: fr-rect, label: "Cria a relação entre User e AccessRule (person_access_roles)"}
+    AccessRule@{ shape: fr-rect, label: "Cria as Regras de Acesso (access_rules)" }
+    TimeZone@{ shape: fr-rect, label: "Cria o Conjunto de Intervalos (time_zone)"}
+    TimeSpan@{ shape: fr-rect, label: "Cria o Intervalo de Horários (time_spans)"}
+    
+    UseCaseRules --> UserSetAccessRules
+    UserSetAccessRules --> ApiRules
+    
+    ApiRules --> Service
+
+    Service --> AccessRule
+    Service --> TimeZone
+    Service --> TimeSpan
+
+    TimeSpan --> TimeZone
+
+    AccessRule --> PersonAccessRule
+    AccessRule --> AccessRuleTimeZone
+    TimeZone --> AccessRuleTimeZone

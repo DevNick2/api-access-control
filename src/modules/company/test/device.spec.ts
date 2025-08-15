@@ -45,9 +45,7 @@ describe('Devices management', () => {
   })
 
   beforeEach(async () => {
-    const testingModule = await TestingAuthModule({
-      realDatabase: [Company, User, Role, Device, Person],
-    });
+    const testingModule = await TestingAuthModule({ withMockedData: false });
 
     userRepository = testingModule.get<MockType<Repository<User>>>(
       getRepositoryToken(User),

@@ -1,0 +1,14 @@
+flowchart TD
+  Api@{ shape: rect, label: "Api REST | Event Driven" }
+
+  %% Gestão de dispositivos
+  AdministratorDevice --> AddNewDevice
+  ManagerDevice --> AddNewDevice
+  AddNewDevice -- "Registra novo Dispositivo, payload: ip, name (/companies/:code/devices)" --> Api
+  Api -- "Timeout default da tentativa de conexão é 5s (5000ms)" --> DeviceLogin@{ shape: subproc, label: "Api conecta no device pelo endpoint /login.fcgi" }
+  DeviceLogin --> DeviceLoginValidator@{ shape: diam, label: "Dispositivo registrado com sucesso?" }
+  DeviceLoginValidator -- "Sim, salva log e retorna feedback de sucesso da conexão com novo Dispositivo" --> AddNewDevice
+  DeviceLoginValidator -- "Não, salva log e retorna o feedback de erro" --> AddNewDevice
+  AdministratorDevice@{ shape: circle, label: "Administrador Registra novo Dispositivo" }
+  AddNewDevice@{ shape: rect, label: "Página para inserir Dispositivo" }
+  ManagerDevice@{ shape: circle, label: "Gestor da Conta Registra novo Dispositivo" }

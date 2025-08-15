@@ -28,9 +28,7 @@ describe('User Management', () => {
   })
 
   beforeEach(async () => {
-    const testingModule = await TestingAuthModule({
-      realDatabase: [User, Role, Company, Device, Person]
-    });
+    const testingModule = await TestingAuthModule({ withMockedData: false });
 
     userService = testingModule.get<UserService>(UserService);
   });

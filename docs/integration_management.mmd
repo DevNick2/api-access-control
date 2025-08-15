@@ -1,0 +1,18 @@
+flowchart TD
+    Api@{ shape: rect, label: "Api REST | Event Driven" }
+
+    %% Gestão de integração e Sincronização de dados
+    AdministratorNewIntegration["Adm Inicia integração"] --> Step1@{ shape: lean-r, label: "Preenche as Credenciais (????)" } 
+    Step1 --> Step2@{ shape: lean-r, label: "Faz o mapeamento dos campos" }
+    Step2 -- "POST /companies/:code/integration" --> Api
+    Api --> IntegrationValidator@{ shape: diam, label: "Os dados estão corretos?" }
+    IntegrationValidator -- "Sim" --> StartSyncing@{ shape: subproc, label: "Inicia o processo de sincronização" }
+    StartSyncing -- "Retorna o status 'syncing'" --> AdministratorNewIntegration
+    IntegrationValidator -- "Não, retorna o fedback de erro (dados inválidos)" --> AdministratorNewIntegration
+    StartSyncing --> IntegrationSyncingValidator["Response 200?"]
+    IntegrationSyncingValidator -- "Sim, Retorna o feedback informando que a integração foi feita e as pessoas foram sincronizados" --> AdministratorNewIntegration
+    IntegrationSyncingValidator -- "Não, Retorna o feedback do erro (Campo incorreto?, falha na comunicação com a API?)" --> AdministratorNewIntegration
+    IntegrationSyncingValidator@{ shape: diam }
+    AdministratorNewIntegration@{ shape: circle }
+
+    %% Gestão de Login, Autorização e Usuários

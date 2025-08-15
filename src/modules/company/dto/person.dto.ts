@@ -1,8 +1,12 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { IsEmail, IsEnum, IsOptional, IsString, IsUrl, IsUUID } from "class-validator";
 import { PersonType } from "src/entities/person.entity";
-
-export class PerssonStoreDTO {
+export class PersonCodeDTO {
+  @IsUUID('4')
+  @IsOptional()
+  person_code?: string
+}
+export class PersonStoreDTO {
   @ApiProperty({
     required: true,
   })

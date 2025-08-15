@@ -29,30 +29,7 @@ describe('Login and Authentication', () => {
   let userRepository: MockType<Repository<User>>;
 
   beforeEach(async () => {
-    const testingModule = await TestingAuthModule({
-      mockDatabase: [
-        {
-          provide: getRepositoryToken(User),
-          useFactory: repository,
-        },
-        {
-          provide: getRepositoryToken(Company),
-          useFactory: repository,
-        },
-        {
-          provide: getRepositoryToken(Role),
-          useFactory: repository,
-        },
-        {
-          provide: getRepositoryToken(Device),
-          useFactory: repository,
-        },
-        {
-          provide: getRepositoryToken(Person),
-          useFactory: repository,
-        },
-      ]
-    });
+    const testingModule = await TestingAuthModule({ withMockedData: true });
 
     userRepository = testingModule.get<MockType<Repository<User>>>(
       getRepositoryToken(User),

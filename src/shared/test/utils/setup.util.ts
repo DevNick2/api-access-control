@@ -9,7 +9,7 @@ import { MockType } from './__util';
 import dataSource from '../../../../db/data-source';
 import { UserService } from 'src/modules/auth/services/user.service';
 import { HashHelpers } from 'src/shared/helpers/hash.helper';
-import { TypeOrmModule } from '@nestjs/typeorm';
+import { getRepositoryToken, TypeOrmModule } from '@nestjs/typeorm';
 import { TypeormService } from 'src/shared/services/typeorm.service';
 import { SessionService } from 'src/modules/auth/services/session.service';
 import { JwtProviderService } from 'src/shared/services/jwt-provider.service';
@@ -23,6 +23,17 @@ import { KevyService } from 'src/shared/services/kevy.service';
 import { AxiosService } from 'src/shared/services/axios.service';
 import { EncrypterService } from 'src/shared/services/encrypter.service';
 import { PersonService } from 'src/modules/company/services/person.service';
+import { AccessRule } from 'src/entities/access_rule.entity';
+import { AccessRuleTimeZone } from 'src/entities/access_rule_time_zone.entity';
+import { Company } from 'src/entities/company.entity';
+import { Device } from 'src/entities/device.entity';
+import { Person } from 'src/entities/person.entity';
+import { Role } from 'src/entities/role.entity';
+import { TimeSpan } from 'src/entities/time_span.entity';
+import { TimeZone } from 'src/entities/time_zone.entity';
+import { User } from 'src/entities/user.entity';
+import { PersonAccessRule } from 'src/entities/person_access_rule.entity';
+import { AccessOrchestratorService } from 'src/modules/company/services/access-orchestrator.service';
 
 export const repository: () => MockType<Repository<any>> = jest.fn(() => ({
   save: jest.fn(),
@@ -42,16 +53,25 @@ export const repository: () => MockType<Repository<any>> = jest.fn(() => ({
 }));
 
 export async function TestingAuthModule({
-  mockDatabase = [],
-  realDatabase = []
+  withMockedData
 }: {
-  mockDatabase?
-  realDatabase?
+  withMockedData: boolean
 }): Promise<TestingModule> {
   return await Test.createTestingModule({
     imports: [
       TypeormService,
-      ...(realDatabase.length ? [TypeOrmModule.forFeature(realDatabase)] : []),
+      ...(!withMockedData ? [TypeOrmModule.forFeature([
+        Company,
+        User,
+        Role,
+        Device,
+        Person,
+        AccessRule,
+        AccessRuleTimeZone,
+        TimeZone,
+        TimeSpan,
+        PersonAccessRule,
+      ])] : []),
       ConfigModule.forRoot({
         envFilePath: `.env.test`,
       }),
@@ -72,12 +92,54 @@ export async function TestingAuthModule({
       AxiosService,
       PersonService,
       EncrypterService,
+      AccessOrchestratorService,
+      KevyService,
       {
         provide: APP_GUARD,
         useClass: AuthGuard,
       },
-      KevyService,
-      ...mockDatabase
+      ...(withMockedData ? [
+        {
+          provide: getRepositoryToken(User),
+          useFactory: repository,
+        },
+        {
+          provide: getRepositoryToken(Company),
+          useFactory: repository,
+        },
+        {
+          provide: getRepositoryToken(Role),
+          useFactory: repository,
+        },
+        {
+          provide: getRepositoryToken(Device),
+          useFactory: repository,
+        },
+        {
+          provide: getRepositoryToken(Person),
+          useFactory: repository,
+        },
+        {
+          provide: getRepositoryToken(PersonAccessRule),
+          useFactory: repository,
+        },
+        {
+          provide: getRepositoryToken(AccessRule),
+          useFactory: repository,
+        },
+        {
+          provide: getRepositoryToken(AccessRuleTimeZone),
+          useFactory: repository,
+        },
+        {
+          provide: getRepositoryToken(TimeZone),
+          useFactory: repository,
+        },
+        {
+          provide: getRepositoryToken(TimeSpan),
+          useFactory: repository,
+        },
+      ] : [])
     ],
     controllers: [AuthController, CompanyController],
   }).compile();
@@ -89,6 +151,10 @@ export async function TestingDatabaseInitialize(): Promise<DataSource> {
       await dataSource.initialize()
 
       console.log('Database testing connection opened!');
+
+      // dataSource.query(
+      //   'TRUNCATE TABLE "device", "role", "company", "access_rule", "person", "time_span", "time_zone", "access_rule_time_zone", "person_access_rule" RESTART IDENTITY CASCADE',
+      // );
 
       return dataSource
     } catch (e) {

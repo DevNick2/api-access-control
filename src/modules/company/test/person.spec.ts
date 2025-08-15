@@ -26,7 +26,7 @@ import { RedisService } from "src/shared/services/redis.service";
 import { DeviceService } from "../services/device.service";
 import { Person, PersonType } from "src/entities/person.entity";
 import { PersonService } from "../services/person.service";
-import { PerssonStoreDTO } from "../dto/person.dto";
+import { PersonStoreDTO } from "../dto/person.dto";
 import { PersonResources } from "../resources/person.resources";
 
 describe('People management', () => {
@@ -45,9 +45,7 @@ describe('People management', () => {
   })
 
   beforeEach(async () => {
-    const testingModule = await TestingAuthModule({
-      realDatabase: [Company, User, Role, Device, Person],
-    });
+    const testingModule = await TestingAuthModule({ withMockedData: false });
 
     companyService = testingModule.get<CompanyService>(CompanyService);
     jwtService = testingModule.get<JwtService>(JwtService);
@@ -66,7 +64,7 @@ describe('People management', () => {
     // given
     // - Usuário com perfil manager e role can_write_people
     // - Payload válido de criação de pessoa
-    const person: PerssonStoreDTO = {
+    const person: PersonStoreDTO = {
       name: faker.person.fullName(),
       person_type: PersonType.EMPLOYEE,
       photo_url: faker.internet.url(),

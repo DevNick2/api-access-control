@@ -1,22 +1,17 @@
-import { TestingDatabaseInitialize, TestingAuthModule, repository } from "src/shared/test/utils/setup.util";
+import { TestingDatabaseInitialize, TestingAuthModule } from "src/shared/test/utils/setup.util";
 import { DataSource, Repository } from "typeorm";
 import { CompanyService } from "../services/company.service";
-import { generateRandomUser } from "src/shared/test/utils/__mocks";
 import { getRepositoryToken } from "@nestjs/typeorm";
 import { User, UserProfile } from "src/entities/user.entity";
 import { MockType } from "src/shared/test/utils/__util";
 import { HashHelpers } from "src/shared/helpers/hash.helper";
-import { Company } from "src/entities/company.entity";
-import { Role } from "src/entities/role.entity";
 import { faker } from "@faker-js/faker/.";
 import { UserStoreDTO } from "src/modules/auth/dto/user.dto";
 import { CompanyStoreDTO } from "../dto/company.dto";
 import { Reflector } from "@nestjs/core";
-import { JwtService, TokenExpiredError, JsonWebTokenError } from "@nestjs/jwt";
+import { JwtService } from "@nestjs/jwt";
 import * as request from 'supertest';
 import { CompanyResources } from "../resources/company.resource";
-import { Device } from "src/entities/device.entity";
-import { Person } from "src/entities/person.entity";
 
 describe('Companies management', () => {
   let app
@@ -32,9 +27,7 @@ describe('Companies management', () => {
   })
 
   beforeEach(async () => {
-    const testingModule = await TestingAuthModule({
-      realDatabase: [Company, User, Role, Device, Person],
-    });
+    const testingModule = await TestingAuthModule({ withMockedData: false });
 
     userRepository = testingModule.get<MockType<Repository<User>>>(
       getRepositoryToken(User),

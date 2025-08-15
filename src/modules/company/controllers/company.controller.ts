@@ -12,9 +12,12 @@ import { DeviceStoreDTO } from "../dto/device.dto";
 import { DeviceService } from "../services/device.service";
 import { DeviceResources } from "../resources/device.resource";
 import { RolesList } from "src/entities/role.entity";
-import { PerssonStoreDTO } from "../dto/person.dto";
+import { PersonCodeDTO, PersonStoreDTO } from "../dto/person.dto";
 import { PersonResources } from "../resources/person.resources";
 import { PersonService } from "../services/person.service";
+import { AccessRuleStoreDTO } from "../dto/access-rule.dto";
+import { AccessRuleResources } from "../resources/access-rule.resource";
+import { AccessOrchestratorService } from "../services/access-orchestrator.service";
 
 @ApiTags('Company')
 @Controller('companies')
@@ -24,7 +27,8 @@ export class CompanyController {
     @Inject() private companyService: CompanyService,
     @Inject() private userService: UserService,
     @Inject() private devicesService: DeviceService,
-    @Inject() private personService: PersonService
+    @Inject() private personService: PersonService,
+    @Inject() private accessOrchestratorService: AccessOrchestratorService
   ) {}
 
   @HttpCode(HttpStatus.CREATED)
@@ -72,11 +76,26 @@ export class CompanyController {
   @HttpCode(HttpStatus.CREATED)
   @Roles({ profile: ['admin', 'manager', 'user'], roles: [RolesList.CAN_WRITE_PEOPLE] })
   @Post(':code/person')
-  async createPerson(@Param('code') code: CompanyCodeDTO['company_code'], @Body() payload: PerssonStoreDTO, @Request() req): Promise<PersonResources> {
+  async createPerson(@Param('code') code: CompanyCodeDTO['company_code'], @Body() payload: PersonStoreDTO, @Request() req): Promise<PersonResources> {
     const person = await this.personService.store(code, payload, req.user)
 
     return new PersonResources(person)
   }
+
+  // Access Rule
+  @HttpCode(HttpStatus.CREATED)
+  @Roles({ profile: ['admin', 'manager', 'user'], roles: [RolesList.CAN_WRITE_PEOPLE, RolesList.CAN_WRITE_ACCESS_RULES] })
+  @Post(':code/person/:person_code/rules')
+  async setRuleToPerson(@Param() params: { code: CompanyCodeDTO['company_code'], person_code: PersonCodeDTO['person_code'] }, @Body() payload: AccessRuleStoreDTO): Promise<AccessRuleResources> {
+    const person = await this.personService.show(params.person_code)
+    const company = await this.companyService.show(params.code)
+
+    const accessRules = await this.accessOrchestratorService.defineAccessRule(company, person, payload)
+
+    return new AccessRuleResources('')
+  }
+
+
 
   // XXX TODO ::
   // @HttpCode(HttpStatus.OK)
